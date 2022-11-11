@@ -1,7 +1,10 @@
 <?php
 
-use TCG\Voyager\Voyager;
+use Inertia\Inertia;
+use TCG\Voyager\Facades\Voyager;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,10 +18,20 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
 });
+
+Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->name('dashboard');
 
 
 Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
